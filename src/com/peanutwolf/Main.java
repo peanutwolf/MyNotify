@@ -23,7 +23,7 @@ public class Main{
 //        frameThread.start();
 
         VKProtoPort vkPort = new VKProtoPort();
-        String access_token = vkPort.setConnection("peanutwolf@bk.ru", "204655jekA");
+        String access_token = vkPort.setConnection("**********", "***********");
 
         VKservice vkService = new VKservice(vkPort);
         Thread newThread = new Thread(vkService);
