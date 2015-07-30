@@ -21,7 +21,7 @@ enum MessageID{
     VK_ID,
 }
 
-public class MyJFrameTray extends JFrame implements Runnable {
+public class MyJFrameTray extends JFrame implements Runnable, MyMailListener, MyVKListener {
     private JFrame dialog;
     private Rectangle maxBounds;
 
@@ -155,5 +155,15 @@ public class MyJFrameTray extends JFrame implements Runnable {
 
 
         }
+    }
+
+    @Override
+    public void mailReceived(MyMailEvent event) {
+
+    }
+
+    @Override
+    public void vkMessageReceived(MyVKEvent event) {
+
     }
 }

@@ -6,7 +6,7 @@ import java.util.*;
 
 class MailService implements Runnable{
 	private List<MyMailListener> _listeners = new ArrayList<MyMailListener>();
-	MailProtoPort proto;
+	MailProtoPort mailProtoPort;
 	int unreadMsgNumber = 0;
 	
 	public synchronized void addEventListener(MyMailListener listener){
@@ -25,20 +25,25 @@ class MailService implements Runnable{
 		}
 	}
 
-	public MailService(MailProtoPort proto) {
-		this.proto = proto;
-		this.proto.initFolder("Inbox");
+	public MailService(String host, String email, String pass, String port) throws Error{
+		this.mailProtoPort = new ImapMailProtoPort(host, email, pass, port);
+		try {
+			this.mailProtoPort.connect();
+		}catch (Error err){
+			throw err;
+		}
+		this.mailProtoPort.initFolder("Inbox");
 	}
 
 	public String getEmail(){
-		return proto.getEmail();
+		return mailProtoPort.getEmail();
 	}
 
 	@Override
 	public void run() {
 		int unreadMsgNumber_tmp;
 		while(true){
-			unreadMsgNumber_tmp = proto.getUnreadMsgCount();
+			unreadMsgNumber_tmp = mailProtoPort.getUnreadMsgCount();
 			if(unreadMsgNumber_tmp != unreadMsgNumber){
 				unreadMsgNumber = unreadMsgNumber_tmp;
 				this.fireEvent();

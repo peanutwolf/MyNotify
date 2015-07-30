@@ -9,25 +9,25 @@ import java.io.IOException;
 
 public class Main{
 
-
     public static void main(String... args){
-//        MyMailDevice dev = new MyMailDevice();
-//        InnerNotifier innerNotifier = new InnerNotifier();
-//        MailService mailService = new MailService(new ImapMailProtoPort("imap.gmail.com", "peanutwolf@gmail.com", "204655jekA204655jekA", "993"));
-//        mailService.addEventListener(dev);
-//        mailService.addEventListener(innerNotifier);
-//        Thread newThread = new Thread(mailService);
-//        newThread.start();
-//        MyJFrameTray frame = MyJFrameTray.getInstance();
-//        Thread frameThread = new Thread(frame);
-//        frameThread.start();
+        Thread VKServiceThread;
+        Thread MailServiceThread;
+        Thread NotifyServiceThread;
+        Thread HardwareDevThread;
 
-        VKProtoPort vkPort = new VKProtoPort();
-        String access_token = vkPort.setConnection("peanutwolf@bk.ru", "204655jekA");
+        Thread newThread;
+        VKservice vkService;
+        try {
+            vkService= new VKservice("","");
+             newThread= new Thread(vkService);
+            newThread.start();
+        }catch (Error err){
+            System.err.println(err.getMessage());
+        }
 
-        VKservice vkService = new VKservice(vkPort);
-        Thread newThread = new Thread(vkService);
-        newThread.start();
+        while (true){
+
+        }
 
     }
 

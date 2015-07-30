@@ -25,14 +25,12 @@ package com.peanutwolf;
 
         import java.io.IOException;
         import java.io.UnsupportedEncodingException;
-        import java.net.URI;
         import java.util.ArrayList;
         import java.util.Iterator;
         import java.util.List;
-        import java.util.Scanner;
         import java.util.regex.Pattern;
 
-public class VKProtoPort {
+public class VKProtoPort implements ProtoPort{
     HttpResponse response;
     HttpEntity entity;
     HttpPost post;
@@ -42,16 +40,17 @@ public class VKProtoPort {
     RequestConfig requestConfig;
     List<BasicNameValuePair> postParameters;
     String access_token;
-    Iterator<BasicNameValuePair> it;
     CloseableHttpClient httpClient;
 
+    private String email;
+    private String pass;
     private String client_id = "5007256";
     private String scope = "messages";
     private String redirect_uri = "http://oauth.vk.com/blank.html";
     private String display = "popup";
     private String response_type = "token";
 
-    VKProtoPort(){
+    VKProtoPort(String email, String pass){
 
         this.cookieStore = new BasicCookieStore();
 
@@ -67,76 +66,9 @@ public class VKProtoPort {
                 setDefaultCookieSpecRegistry(r).
                 setDefaultRequestConfig(requestConfig).
                 setDefaultCookieStore(cookieStore).build();
-    }
 
-    public String setConnection(String email, String pass){
-
-        System.out.println("Logging in vk.com...");
-
-        get = new HttpGet("http://oauth.vk.com/authorize" +
-                "?client_id=" + client_id +
-                "&scope=" + scope +
-                "&redirect_uri=" + redirect_uri +
-                "&display=" + display +
-                "&response_type=" + response_type);
-
-        try {
-
-            response = httpClient.execute(get);
-            if (response == null || response.getStatusLine().getStatusCode() != 200) {
-                return null;
-            }
-            //TODO : Parse HTML for POST request
-            entity = response.getEntity();
-            String htmlLoginPage = EntityUtils.toString(entity);
-            get.abort();
-
-            post = createVKLoginPost(htmlLoginPage, email, pass);
-            response = httpClient.execute(post);
-            post.abort();
-            if (response == null || response.getStatusLine().getStatusCode() != 302) {
-                return null;
-            }
-
-            post = new HttpPost(response.getFirstHeader("location").getValue());
-            response = httpClient.execute(post);
-            post.abort();
-            if (response == null || response.getStatusLine().getStatusCode() != 302) {
-                return null;
-            }
-
-            post = new HttpPost(response.getFirstHeader("location").getValue());
-            response = httpClient.execute(post);
-            post.abort();
-            if (response == null || response.getStatusLine().getStatusCode() != 302) {
-                return null;
-            }
-
-            get = new HttpGet(response.getFirstHeader("location").getValue());
-            postParameters = getQueryMap(get.getURI().getFragment());
-            response = httpClient.execute(get);
-            get.abort();
-            if (response == null || response.getStatusLine().getStatusCode() != 200) {
-                return null;
-            }
-
-            Iterator<BasicNameValuePair> it = postParameters.iterator();
-
-            while (it.hasNext()){
-                BasicNameValuePair bnvp= it.next();
-                if(bnvp.getName().equals("access_token")){
-                    System.out.println("Successfully logged in vk.com...");
-                    access_token = bnvp.getValue();
-                    return access_token;
-                }
-            }
-
-        }catch (IOException ex){
-            ex.printStackTrace();
-        }
-
-        return null;
-
+        this.email = email;
+        this.pass  = pass;
     }
 
     private HttpPost createVKLoginPost(String html_page, String email, String pass) throws UnsupportedEncodingException {
@@ -241,13 +173,10 @@ public class VKProtoPort {
         return unreadMsgsCount;
     }
 
-    public int getUnreadMessageCount(String access_token){
+    public int getUnreadMessageCount(){
         String xmlResponse;
         int unreadMsgsCount = 0;
         String read_state;
-
-        if(access_token == null)
-            access_token = this.access_token;
 
         postParameters = new ArrayList<>();
         postParameters.add(new BasicNameValuePair("filter", "messages"));
@@ -276,6 +205,77 @@ public class VKProtoPort {
         }
 
         return unreadMsgsCount;
+    }
+
+    @Override
+    public void connect() throws Error{
+
+        System.out.println("Logging in vk.com...");
+
+        get = new HttpGet("http://oauth.vk.com/authorize" +
+                "?client_id=" + client_id +
+                "&scope=" + scope +
+                "&redirect_uri=" + redirect_uri +
+                "&display=" + display +
+                "&response_type=" + response_type);
+
+        try {
+
+            response = httpClient.execute(get);
+            if (response == null || response.getStatusLine().getStatusCode() != 200) {
+                throw new Error("Oauth server unavailable");
+            }
+
+            entity = response.getEntity();
+            String htmlLoginPage = EntityUtils.toString(entity);
+            get.abort();
+
+            post = createVKLoginPost(htmlLoginPage, email, pass);
+            response = httpClient.execute(post);
+            post.abort();
+            if (response == null || response.getStatusLine().getStatusCode() != 302) {
+                throw new Error("VK server not found");
+            }
+
+            post = new HttpPost(response.getFirstHeader("location").getValue());
+            response = httpClient.execute(post);
+            post.abort();
+            if (response == null || response.getStatusLine().getStatusCode() != 302) {
+                throw new Error("Unknown error");
+            }
+
+            post = new HttpPost(response.getFirstHeader("location").getValue());
+            response = httpClient.execute(post);
+            post.abort();
+            if (response == null || response.getStatusLine().getStatusCode() != 302) {
+                throw new Error("Unknown error");
+            }
+
+            get = new HttpGet(response.getFirstHeader("location").getValue());
+            postParameters = getQueryMap(get.getURI().getFragment());
+            response = httpClient.execute(get);
+            get.abort();
+            if (response == null || response.getStatusLine().getStatusCode() != 200) {
+                throw new Error("Unknown error");
+            }
+
+            Iterator<BasicNameValuePair> it = postParameters.iterator();
+
+            while (it.hasNext()){
+                BasicNameValuePair bnvp= it.next();
+                if(bnvp.getName().equals("access_token")){
+                    System.out.println("Successfully logged in vk.com...");
+                    access_token = bnvp.getValue();
+                    return;
+                }
+            }
+
+        }catch (IOException ex){
+            ex.printStackTrace();
+        }
+
+        throw new Error("Access token not received");
+
     }
 
     class MyLenientCookieSpec implements CookieSpecProvider {
