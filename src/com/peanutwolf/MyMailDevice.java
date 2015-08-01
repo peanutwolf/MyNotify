@@ -60,7 +60,6 @@ class MyMailDevice implements MyMailListener{
 
         System.out.println("Number of mails " + mailCount);
 //        tray.displayTrayMessage("Number of mails "+ mailCount);
-
         try {
             if(out != null)
                 out.write(("new_mail:" + mailCount + ":").getBytes());

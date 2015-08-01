@@ -34,6 +34,7 @@ public class MyJFrameTray extends JFrame implements Runnable, MyMailListener, My
     }
 
     private MyJFrameTray() {
+        GraphicsEnvironment ge;
 
         dialog = new JFrame();
 
@@ -78,7 +79,7 @@ public class MyJFrameTray extends JFrame implements Runnable, MyMailListener, My
 
         dialog.getContentPane().setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
 
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         maxBounds = ge.getMaximumWindowBounds();
     }
 

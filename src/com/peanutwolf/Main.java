@@ -15,19 +15,9 @@ public class Main{
         Thread NotifyServiceThread;
         Thread HardwareDevThread;
 
-        Thread newThread;
-        VKservice vkService;
-        try {
-            vkService= new VKservice("","");
-             newThread= new Thread(vkService);
-            newThread.start();
-        }catch (Error err){
-            System.err.println(err.getMessage());
-        }
+        MyJWindowTray tray = MyJWindowTray.getInstance();
 
-        while (true){
-
-        }
+        while (true){}
 
     }
 
