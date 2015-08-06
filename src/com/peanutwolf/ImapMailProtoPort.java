@@ -71,13 +71,20 @@ class ImapMailProtoPort extends MailProtoPort{
     }
 
     public int getUnreadMsgCount(){
+        int messages = 0;
+
         if(!store.isConnected()){
             System.out.println("store is not connected");
             return -1;
         }
         try {
-            ((IMAPFolder)this.folder).getMessageCount();
-            return ((IMAPFolder)this.folder).getUnreadMessageCount();
+            messages = ((IMAPFolder)this.folder).getMessageCount();
+            //System.out.println("DEBUG: .getMessageCount() = " + messages);
+
+            messages = ((IMAPFolder)this.folder).getUnreadMessageCount();
+            //System.out.println("DEBUG: .getUnreadMessageCount() = " + messages);
+
+            return messages;
         } catch (MessagingException e) {
             e.printStackTrace();
             return -1;
@@ -102,6 +109,7 @@ class ImapMailProtoPort extends MailProtoPort{
             System.out.println("Connecting to mail server");
             this.store = session.getStore();
             this.store.connect(this.host, this.email, this.pass);
+            System.out.println("Connected to " + this.email);
             return;
         } catch (NoSuchProviderException e) {
             e.printStackTrace();

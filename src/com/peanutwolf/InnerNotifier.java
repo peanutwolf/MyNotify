@@ -17,6 +17,6 @@ public class InnerNotifier implements MyMailListener{
     public void mailReceived(MyMailEvent event) {
         int mailCount = event.getUnreadMsgCount();
         String email = event.getMailAddress();
-        frame.displayMsg(0, "<html>"+"You have " + mailCount + " new messages <b>" + "in " + email+"</html>");
+        //frame.displayMsg(0, "<html>"+"You have " + mailCount + " new messages <b>" + "in " + email+"</html>");
     }
 }
