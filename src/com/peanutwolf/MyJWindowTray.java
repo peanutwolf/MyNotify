@@ -2,14 +2,16 @@ package com.peanutwolf;
 
 import com.sun.awt.AWTUtilities;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.AbstractBorder;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -92,16 +94,26 @@ class MailJWindowNode extends MyJWindowNode{
 
     MailJWindowNode() {
         super(MessageID.MAIL_ID);
-        trayPanel = new RoundedPanel();
+        try {
+            BufferedImage img = ImageIO.read(new URL("http://pre02.deviantart.net/98b8/th/pre/i/2012/242/1/c/sunny_leaves_background_texture_by_donnamarie113-d5d0txr.jpg"));
+            trayPanel = new RoundedPanel(img);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+       // trayPanel = new RoundedPanel();
         trayLabel = new JLabel();
 
         trayPanel.setName(MessageID.MAIL_ID.toString());
 
         trayPanel.add(trayLabel);
 
+        trayPanel.setBackground(Color.YELLOW);
+
         trayPanel.setMinimumSize(new Dimension(320, 80));
         trayPanel.setPreferredSize(new Dimension(320, 80));
         trayPanel.setMaximumSize(new Dimension(320, 80));
+
+        trayPanel.addMouseListener(new MyRoundedPanelMouseListener());
 
     }
 
@@ -119,77 +131,228 @@ class MailJWindowNode extends MyJWindowNode{
     }
 
     public JPanel getTrayPanel(){
-        trayLabel.setText("You have " + unreadMsgNumber + "messages");
+        Color color = trayPanel.getBackground();
+        trayLabel.setText("You have " + unreadMsgNumber + " messages in mail box");
         trayPanel.revalidate();
+        trayPanel.setMinimumSize(new Dimension(320, 80));
+        trayPanel.setPreferredSize(new Dimension(320, 80));
+        trayPanel.setMaximumSize(new Dimension(320, 80));
+        trayPanel.setBackground(new Color(color.getRed(),color.getGreen(),color.getBlue(), 255));
 
         return trayPanel;
     }
 
 }
 
-class RoundedPanel extends JPanel {
+class VKJWindowNode extends MyJWindowNode{
+    private int unreadMsgNumber = 0;
+    private JPanel trayPanel;
+    private JLabel trayLabel;
 
-    /** Stroke size. it is recommended to set it to 1 for better view */
+    VKJWindowNode() {
+        super(MessageID.VK_ID);
+        try {
+            BufferedImage img = ImageIO.read(new URL("http://konstantinmartynov.ru/sites/default/files/images/vk.jpg"));
+            trayPanel = new RoundedPanel(img);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        trayLabel = new JLabel();
+
+        trayPanel.setName(MessageID.VK_ID.toString());
+
+        trayPanel.add(trayLabel);
+
+        trayPanel.setBackground(Color.YELLOW);
+
+        trayPanel.setMinimumSize(new Dimension(320, 80));
+        trayPanel.setPreferredSize(new Dimension(320, 80));
+        trayPanel.setMaximumSize(new Dimension(320, 80));
+
+        trayPanel.addMouseListener(new MyRoundedPanelMouseListener());
+
+    }
+
+    public int getUnreadMsgNumber(){
+        return unreadMsgNumber;
+    }
+
+    public boolean setUnreadMsgNumber(int unreadMsgNumber){
+        boolean result = false;
+        if(this.unreadMsgNumber < unreadMsgNumber)
+            result = true;
+        this.unreadMsgNumber = unreadMsgNumber;
+
+        return  result;
+    }
+
+    public JPanel getTrayPanel(){
+        Color color = trayPanel.getBackground();
+        trayLabel.setText("You have " + unreadMsgNumber + " messages in vk");
+        trayPanel.revalidate();
+        trayPanel.setMinimumSize(new Dimension(320, 80));
+        trayPanel.setPreferredSize(new Dimension(320, 80));
+        trayPanel.setMaximumSize(new Dimension(320, 80));
+        trayPanel.setBackground(new Color(color.getRed(), color.getGreen(), color.getBlue(), 255));
+
+        return trayPanel;
+    }
+
+}
+
+class RoundedPanel extends JPanel
+{
     protected int strokeSize = 1;
-    /** Color of shadow */
-    protected Color shadowColor = Color.black;
-    /** Sets if it drops shadow */
-    protected boolean shady = false;
-    /** Sets if it has an High Quality view */
-    protected boolean highQuality = true;
-    /** Double values for Horizontal and Vertical radius of corner arcs */
-    protected Dimension arcs = new Dimension(20, 20);
-    /** Distance between shadow border and opaque panel border */
-    protected int shadowGap = 5;
-    /** The offset of shadow.  */
-    protected int shadowOffset = 4;
-    /** The transparency value of shadow. ( 0 - 255) */
-    protected int shadowAlpha = 150;
+    protected Color _shadowColor = Color.BLACK;
+    protected boolean shadowed = false;
+    protected boolean _highQuality = true;
+    protected Dimension _arcs = new Dimension(30, 30);
+    protected int _shadowGap = 5;
+    protected int _shadowOffset = 4;
+    protected int _shadowAlpha = 150;
+    protected float composite = 1.0f;
 
-    public RoundedPanel() {
+    protected Color _backgroundColor = Color.LIGHT_GRAY;
+    protected BufferedImage image = null;
+    private Color c;
+
+    public RoundedPanel(BufferedImage img)
+    {
         super();
         setOpaque(false);
+
+        if(img != null)
+        {
+            image = img;
+        }
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
+    public void setBackground(Color c)
+    {
+        float c1 = (float) c.getAlpha();
+        float c2 = 1.0f/255;
+        float c3 = c1 * c2;
+        if(_backgroundColor != null &&(_backgroundColor.getAlpha() != c.getAlpha())){
+            composite = (1.0f/255) * (float)c.getAlpha();
+        }
+        _backgroundColor = c;
+    }
+
+    @Override
+    public Color getBackground(){
+        return _backgroundColor;
+    }
+
+    private void setAlphaComposite(float composite){
+        this.composite = composite;
+    }
+
+    private float getAlphaComposite(){
+        return composite;
+    }
+
+
+    @Override
+    protected void paintComponent(Graphics g)
+    {
         super.paintComponent(g);
+
         int width = getWidth();
         int height = getHeight();
-        int shadowGap = this.shadowGap;
-        Color shadowColorA = new Color(shadowColor.getRed(),
-                shadowColor.getGreen(), shadowColor.getBlue(), shadowAlpha);
+        int shadowGap = this._shadowGap;
+        Color shadowColorA = new Color(_shadowColor.getRed(), _shadowColor.getGreen(), _shadowColor.getBlue(), _shadowAlpha);
         Graphics2D graphics = (Graphics2D) g;
 
-        //Sets antialiasing if HQ.
-        if (highQuality) {
-            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON);
+        if(_highQuality)
+        {
+            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         }
 
-        //Draws shadow borders if any.
-        if (shady) {
+        if(shadowed)
+        {
             graphics.setColor(shadowColorA);
-            graphics.fillRoundRect(
-                    shadowOffset,// X position
-                    shadowOffset,// Y position
-                    width - strokeSize - shadowOffset, // width
-                    height - strokeSize - shadowOffset, // height
-                    arcs.width, arcs.height);// arc Dimension
-        } else {
-            shadowGap = 1;
+            graphics.fillRoundRect(_shadowOffset, _shadowOffset, width - strokeSize - _shadowOffset,
+                    height - strokeSize - _shadowOffset, _arcs.width, _arcs.height);
+        }
+        else
+        {
+            _shadowGap = 1;
         }
 
-        //Draws the rounded opaque panel with borders.
-        graphics.setColor(getBackground());
-        graphics.fillRoundRect(0, 0, width - shadowGap,
-                height - shadowGap, arcs.width, arcs.height);
+        RoundRectangle2D.Float rr = new RoundRectangle2D.Float(0, 0, (width - shadowGap), (height - shadowGap), _arcs.width, _arcs.height);
+
+        Shape clipShape = graphics.getClip();
+
+        if (image == null)
+        {
+            graphics.setColor(_backgroundColor);
+            graphics.fill(rr);
+        }
+        else
+        {
+            RoundRectangle2D.Float rr2 =  new RoundRectangle2D.Float(0, 0, (width - strokeSize - shadowGap), (height - strokeSize - shadowGap), _arcs.width, _arcs.height);
+
+            graphics.setClip(rr2);
+            graphics.setComposite(AlphaComposite.SrcOver.derive(composite));
+            graphics.drawImage(this.image, 0, 0, null);
+            graphics.setClip(clipShape);
+        }
+
         graphics.setColor(getForeground());
         graphics.setStroke(new BasicStroke(strokeSize));
-        graphics.drawRoundRect(0, 0, width - shadowGap,
-                height - shadowGap, arcs.width, arcs.height);
-
-        //Sets strokes to default, is better.
+        graphics.draw(rr);
         graphics.setStroke(new BasicStroke());
+    }
+}
+
+class MyRoundedPanelMouseListener implements MouseListener{
+    Timer timer;
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        MouseEvent convertMouseEvent = SwingUtilities.convertMouseEvent(e.getComponent(), e, e.getComponent().getParent());
+        e.getComponent().getParent().dispatchEvent(convertMouseEvent);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        Component comp = (Component)e.getSource();
+
+        if(timer == null)
+            timer = new Timer(50, new MyJFrameTrayActionListener(comp));
+
+        if (timer.isRunning() && !timer.getActionCommand().equals("ComponentFadeout"))
+            return;
+        else if (timer.isRunning() && timer.getActionCommand().equals("ComponentFadeout"))
+            timer.stop();
+        timer.setInitialDelay(0);
+        timer.setDelay(50);
+        timer.setActionCommand("ComponentFadein");
+        timer.start();
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        if(timer == null)
+            return;
+        if(timer.isRunning() && !timer.getActionCommand().equals("ComponentFadein"))
+            return;
+        else if(timer.isRunning() && timer.getActionCommand().equals("ComponentFadein"))
+            timer.stop();
+        timer.setInitialDelay(0);
+        timer.setDelay(50);
+        timer.setActionCommand("ComponentFadeout");
+        timer.start();
     }
 }
